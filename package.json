@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^11.3.0",
+    "nodemon": "^2.0.20"
+  },
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon server"
+  },
+  "name": "lift-logger",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hikemalliday/lift-logger.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hikemalliday/lift-logger/issues"
+  },
+  "homepage": "https://github.com/hikemalliday/lift-logger#readme",
+  "description": ""
+}
