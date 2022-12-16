@@ -2,20 +2,20 @@
   "dependencies": {
     "express": "^4.18.2",
     "firebase-admin": "^11.3.0",
+    "jquery": "^3.6.1",
     "nodemon": "^2.0.20"
   },
   "scripts": {
-    "start": "node server",
-    "dev": "nodemon server"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "name": "lift-logger",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "firebase.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hikemalliday/lift-logger.git"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {

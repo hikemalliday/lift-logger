@@ -1,0 +1,30 @@
+### GET FRIENDs 
+GET http://localhost:8383/friends
+
+### GET FRIEND 
+GET http://localhost:8383/friends/james
+
+### ADD A FRIEND 
+POST http://localhost:8383/addlift
+Content-Type: application/json
+
+
+{
+    "liftType": "Squat", "weight": "420", "reps": 10, "date": "12/22/22"
+}
+
+### UPDATE STATUS OF A FRIEND 
+PATCH http://localhost:8383/changestatus 
+Content-Type: application/json
+
+{
+"name": "tomato", "newStatus": "friend"
+}
+
+###DELETE A FRIEND 
+DELETE http://localhost:8383/friends 
+Content-Type: application/json
+
+{
+"name": "banana"
+}
