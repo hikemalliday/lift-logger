@@ -1,54 +1,52 @@
+// Had to build 2 buildtable functions, because I needed to remove the table clearing line from one
+// Added 'allLifts' variable, which 
 
 
-async function getFriends() 
-{   
-    try
-    {
-        const result = await fetch("http://localhost:8383/friends",
-        {
-            method: "GET",
-            headers: {"Content-Type": "application/json"}
-        });
-        console.log(result);
-        let convertedToJSON = await result.json();
-        console.log(convertedToJSON)
 
-    }
-    catch(err)
-    {
-        console.log(err)
-    }
-}
-
-async function getStuff() 
-{   
-    try
-    {
-        console.log('getStuff')
-        const result = await fetch("http://localhost:8383/stuff",
-        {
-            method: "GET",
-            headers: {"Content-Type": "application/json"}
-        });
-        console.log(result);
-        let convertedToJSON = await result.json();
-        console.log(convertedToJSON)
-
-    }
-    catch(err)
-    {
-        console.log(err)
-    }
-}
-
+// Fires when webpage loads, to set the 4 collection variables
+fetchAllCollections()
 let allLifts = null;
+let armday = null;
+let legday = null;
+let pullday = null;
+let pushday = null;
 
-//This function makes a GET request, and retrieves the entire 'lift' document, then 'buildTable()' outputs the returned array of objects onto a table
-async function getAllLifts()
+// This function/event listens for 'keyup'
+$('#search-input').on('keyup', function()
+{
+    let value = $(this).val()
+    let data = searchTable(value, allLifts)
+    buildTable(data)
+} )
+
+// This function/event listens to the 'th' elements, and sorts the columns by ascending or descending
+$('th').on('click', function() 
+{
+    let order = $(this).data('order')
+    let column = $(this).data('column')
+
+    console.log('Column was clicked!', column, order)
+
+    if (order == 'desc')
+    {
+        $(this).data('order', 'asc')
+        allLifts = allLifts.sort((a,b) => a[column] > b[column] ? 1 : -1)
+    }
+    else
+    {
+        $(this).data('order', 'desc')
+        allLifts = allLifts.sort((a,b) => a[column] < b[column] ? 1 : -1)
+    }
+    
+    buildTable(allLifts)
+})
+
+// This fetches the DB and stores it to 'allLifts.' Was necesarry to store the DB locally for search bar functionality
+async function fetchAllLifts()
 {
     try
     {
-        const result = await fetch("http://localhost:8383/getAllLifts",
+        const result = await fetch("http://localhost:8383/getalllifts",
         {
             method: "GET",
             headers: {"Content-Type": "application/json"},
@@ -57,12 +55,9 @@ async function getAllLifts()
         
         console.log(convertedToJSON);
         console.table(convertedToJSON);
-        
+       
         // Set global value for allLifts
         allLifts = convertedToJSON;
-
-        buildTable(convertedToJSON);
-   
     }
     catch(err)
     {
@@ -70,7 +65,175 @@ async function getAllLifts()
     }
 }
 
+// This function builds the table using all 4 collections. It utilizes the 'buildTable()' function to do so
+function buildTableAll()
+{
+    buildTableWithCollection(armday);
+    buildTableWithCollection(legday);
+    buildTableWithCollection(pullday);
+    buildTableWithCollection(pushday);
+}
 
+// Build / populate table (used by the search bar)
+function buildTable(data)
+{
+    let table = document.getElementById('myTable');
+
+    table.innerHTML = ''
+
+    for (let i = 0; i < data.length; i++)
+    {
+        let row = `<tr>
+                        <td> <a href="javascript:void(0);" onclick=getSingleLift(${i})> ${data[i].lift} </a></td>
+                        <td>${data[i].weight}</td>
+                        <td>${data[i].reps}</td>
+                        <td>${data[i].date}<a href="javascript:void(0);" onclick=deleteLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-trash-can"></i></a>
+                        <a href="javascript:void(0);" onclick=editLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-pencil"></i></a></td>
+                    </tr>`
+        table.innerHTML += row
+    }
+}
+
+// Needed to add a serparate builder because the original buildTable function clears the table at the beggining
+function buildTableWithCollection(data)
+{
+    let table = document.getElementById('myTable');
+
+    for (let i = 0; i < data.length; i++)
+    {
+        let row = `<tr>
+                        <td> <a href="javascript:void(0);" onclick=getSingleLift(${i})> ${data[i].lift} </a></td>
+                        <td>${data[i].weight}</td>
+                        <td>${data[i].reps}</td>
+                        <td>${data[i].date}<a href="javascript:void(0);" onclick=deleteLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-trash-can"></i></a>
+                        <a href="javascript:void(0);" onclick=editLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-pencil"></i></a></td>
+                    </tr>`
+        table.innerHTML += row
+    }
+}
+
+// Searches database and rebuilds the table upon every keystroke
+function searchTable(value, data)
+{
+    let filteredData = [];
+
+    for (let i = 0; i < data.length; i++)
+    {
+        value = value.toLowerCase()
+        let lift = data[i].lift.toLowerCase()
+
+        if (lift.includes(value))
+        {
+            filteredData.push(data[i])
+        }
+    }
+    return filteredData
+}
+
+// Deletes the entire table from the screen
+function clearTable()
+{
+    let table = document.getElementById('myTable');
+    table.innerHTML = ''
+}
+
+// This function fetches the 'armday' collection
+async function fetchArmDay()
+{
+    try
+    {
+        const result = await fetch("http://localhost:8383/getarmday",
+        {
+            method: "GET",
+            headers: {"Content-Type": "application/json"},
+        });
+        let convertedToJSON = await result.json();
+        
+        console.log(convertedToJSON);
+        console.table(convertedToJSON);
+       
+        // Set global value for allLifts
+        armday = convertedToJSON;
+    }
+    catch(err)
+    {
+        console.log(err)
+    }
+}
+
+// This function fetches the 'legday' collection
+async function fetchLegDay()
+{
+    try
+    {
+        const result = await fetch("http://localhost:8383/getlegday",
+        {
+            method: "GET",
+            headers: {"Content-Type": "application/json"},
+        });
+        let convertedToJSON = await result.json();
+        
+        console.log(convertedToJSON);
+        console.table(convertedToJSON);
+       
+        // Set global value for legday
+        legday = convertedToJSON;
+    }
+    catch(err)
+    {
+        console.log(err)
+    }
+}
+
+// This function fetches the 'pullday' collection
+async function fetchPullDay()
+{
+    try
+    {
+        const result = await fetch("http://localhost:8383/getpullday",
+        {
+            method: "GET",
+            headers: {"Content-Type": "application/json"},
+        });
+        let convertedToJSON = await result.json();
+        
+        console.log(convertedToJSON);
+        console.table(convertedToJSON);
+       
+        // Set global value for pullday
+        pullday = convertedToJSON;
+    }
+    catch(err)
+    {
+        console.log(err)
+    }
+}
+
+// This function fetches the 'pushday' collection
+async function fetchPushDay()
+{
+    try
+    {
+        const result = await fetch("http://localhost:8383/getpushday",
+        {
+            method: "GET",
+            headers: {"Content-Type": "application/json"},
+        });
+        let convertedToJSON = await result.json();
+        
+        console.log(convertedToJSON);
+        console.table(convertedToJSON);
+    
+        // Set global value for pushday
+        pushday = convertedToJSON;
+    }
+    catch(err)
+    {
+        console.log(err)
+    }
+}
+
+// This function makes a POST request, and posts a lift to the firestore db
 async function postLift()
 {   
     let body = 
@@ -90,6 +253,7 @@ async function postLift()
         });
         let convertedToJSON = await result.json();
         console.log(convertedToJSON)
+        
 
     }
     catch(err)
@@ -98,62 +262,83 @@ async function postLift()
     }
 }
 
-// Build / populate table
-   
-function buildTable(data)
+// Sends a DELETE request, with {id: docId} as the body
+async function deleteLift(docId)
 {
-    let table = document.getElementById('myTable');
+    
+        let body = 
+        {
+            id: docId
+        }
+    
+        try
+        {
+            const result = await fetch("http://localhost:8383/deletelift",
+            {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(body)
+            });
+            
+        }
+        catch(err)
+        {
+            console.log(err)
+        }
+    
+}
 
-    table.innerHTML = ''
-
-    for (let i = 0; i < data.length; i++)
+// Send a POST request to EDIT a lift, with {id. docId} included in the body
+async function editLift(docId)
+{
+    let body = 
     {
-        let row = `<tr>
-                        <td> <a href="javascript:void(0);" onclick=getSingleLift(${i})> ${data[i].lift} </a></td>
-                        <td>${data[i].weight}</td>
-                        <td>${data[i].reps}</td>
-                        <td>${data[i].date}</td>
-                    </tr>`
-        table.innerHTML += row
+        liftType: $("#lift").val(),
+        weight: $("#weight").val(),
+        reps: $("#reps").val(),
+        id: docId
+    }
+     try
+    {
+        const result = await fetch("http://localhost:8383/editlift",
+        {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+        let convertedToJSON = await result.json();
+        console.log(convertedToJSON)
+    }
+    catch(err)
+    {
+        console.log(err)
     }
 }
 
-// Function to GET a single document (a single 'lift)
-
-function getSingleLift(i)
+// Deletes a single lift and rebuilds the table
+async function deleteLiftAndReloadTable(docId)
 {
+     await deleteLift(docId).then(await fetchAllLifts()).then(clearTable(),populateLiftTable())
+}  
+
+// Edits a single lift and rebuilds the table
+async function editLiftAndReloadTable(docId)
+{
+    await editLift(docId).then(await fetchAllLifts()).then(clearTable(),populateLiftTable())
+}
+
+// This function fetches all the collections
+
+async function fetchAllCollections()
+{
+await fetchArmDay().then(await fetchLegDay()).then(await fetchPullDay()).then(await fetchPushDay()).then(setAllLifts())
+}
+
+function setAllLifts()
+{
+    allLifts = [...armday, ...legday, ...pullday, ...pushday]
     console.log(allLifts)
-    console.log(allLifts[i].lift)
 }
-
-$('th').on('click', () =>
-{
-
-    
-    console.log(this)
-    
-    let order = $(this).data('order')
-    let column = $(this).data('column')
-
-    
-    console.log('Column was clicked!', column, order)
-
-    
-
-    if (order == 'desc')
-    {
-        $(this).data('order', 'asc')
-        allLifts = allLifts.sort((a,b) => a[column] > b[column] ? 1 : -1)
-    }
-    else
-    {
-        $(this).data('order', 'desc')
-        allLifts = allLifts.sort((a,b) => a[column] < b[column] ? 1 : -1)
-    }
-    
-    buildTable(allLifts)
-})
-
 
 
 

@@ -4,33 +4,12 @@ const app = express()
 const port = 8383
 const { db } = require('./firebase.js')
 
-
 app.use(express.static('.'))
 app.use(express.json())
 
+app.listen(port, () => console.log(`Server has started on port: ${port}`))
 
-const friends = {
-    'james': 'friend',
-    'larry': 'friend',
-    'lucy': 'friend',
-    'banana': 'enemy',
-}
-
-app.get('/stuff', async (req, res) => {
-   const stuff = { content: "stuff" }
-
-    res.status(200).send(JSON.stringify(friends))
-})
-
-app.post('/stuff', async (req, res) => {
-    const stuff = { content: "stuff" };
-    console.log(req.body.body);
-     res.status(200).send(JSON.stringify(stuff))
- })
-
-
-
-app.get('/getAllLifts', async (req, res) => 
+app.get('/getalllifts', async (req, res) => 
 {
     // Take a 'snapshot' of the collection called 'lifts' and send it back to user
      const snapshot = await db.collection('lifts').get()
@@ -38,21 +17,58 @@ app.get('/getAllLifts', async (req, res) =>
      return res.send(snapshot.docs.map(doc => doc.data()));  
 })
 
-app.get('/friends/:name', (req, res) => {
-    const { name } = req.params
-    if (!name || !(name in friends)) {
-        return res.sendStatus(404)
-    }
-    res.status(200).send({ [name]: friends[name] })
+app.get('/getarmday', async (req, res) => 
+{ 
+    // Take a snapshot of the 'armday' collection
+    const snapshot = await db.collection('lifts').doc('armday').collection('armday').get()
+    // I believe this 'bundles' the db objects into one array?
+    return res.send(snapshot.docs.map(doc => doc.data()));  
+})
+app.get('/getlegday', async (req, res) => 
+{ 
+    // Take a snapshot of the 'armday' collection
+    const snapshot = await db.collection('lifts').doc('legday').collection('legday').get()
+    // I believe this 'bundles' the db objects into one array?
+    return res.send(snapshot.docs.map(doc => doc.data()));  
+})
+app.get('/getpullday', async (req, res) => 
+{ 
+    // Take a snapshot of the 'armday' collection
+    const snapshot = await db.collection('lifts').doc('pullday').collection('pullday').get()
+    // I believe this 'bundles' the db objects into one array?
+    return res.send(snapshot.docs.map(doc => doc.data()));  
+})
+app.get('/getpushday', async (req, res) => 
+{ 
+    // Take a snapshot of the 'armday' collection
+    const snapshot = await db.collection('lifts').doc('pushday').collection('pushday').get()
+    // I believe this 'bundles' the db objects into one array?
+    return res.send(snapshot.docs.map(doc => doc.data()));  
 })
 
 app.post('/addlift', async (req, res) => {
-    // *saving for revert const { name, status } = req.body
-    // const { liftType, weight, reps, date} = req.body;
     
     const { liftType, weight, reps } = req.body;
+    const peopleRef = db.collection('lifts').doc();
     
-    const peopleRef = db.collection('lifts').doc(liftType);
+    const res2 = await peopleRef.set({
+        "lift": liftType,
+        "weight": weight,
+        "reps": reps,
+        "date": new Date().toLocaleString(),
+        "id": peopleRef.id
+        } 
+    , { merge: true })
+    
+    res.send(JSON.stringify(req.body))
+})
+
+app.post('/editlift', async (req, res) =>
+{
+    const { liftType, weight, reps } = req.body;
+    const { id } = req.body;
+    const peopleRef = db.collection('lifts').doc(id);
+    // This is almost identical to '/addlift' but the 'id' is removed
     const res2 = await peopleRef.set({
         "lift": liftType,
         "weight": weight,
@@ -60,14 +76,19 @@ app.post('/addlift', async (req, res) => {
         "date": new Date().toLocaleString()
         } 
     , { merge: true })
-    // friends[name] = status
-    res.status(200).send(JSON.stringify(req.body))
+    
+    res.send(JSON.stringify(req.body))
 })
 
-app.post('/testpost', async (req, res) =>
-{
-    res.send(JSON.stringify('testpost'))
+app.delete('/deletelift', async (req, res) => {
+    let { id } = req.body
+    let peopleRef = db.collection('lifts').doc(id)
+    let res2 = await peopleRef.delete()
 })
+
+
+
+// Left-overs from the tutorial
 
 app.patch('/changestatus', async (req, res) => {
     const { name, newStatus } = req.body
@@ -79,13 +100,15 @@ app.patch('/changestatus', async (req, res) => {
     res.status(200).send(friends)
 })
 
-app.delete('/friends', async (req, res) => {
-    const { name } = req.body
-    const peopleRef = db.collection('people').doc('associates')
-    const res2 = await peopleRef.update({
-        [name]: FieldValue.delete()
-    })
-    res.status(200).send(friends)
+app.post('/testpost', async (req, res) =>
+{
+    res.send(JSON.stringify('testpost'))
 })
 
-app.listen(port, () => console.log(`Server has started on port: ${port}`))
+app.get('/friends/:name', (req, res) => {
+    const { name } = req.params
+    if (!name || !(name in friends)) {
+        return res.sendStatus(404)
+    }
+    res.status(200).send({ [name]: friends[name] })
+})
