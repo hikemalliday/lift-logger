@@ -2,7 +2,6 @@
 // Added 'allLifts' variable, which 
 
 
-
 // Fires when webpage loads, to set the 4 collection variables
 fetchAllCollections()
 let allLifts = null;
@@ -10,6 +9,13 @@ let armday = null;
 let legday = null;
 let pullday = null;
 let pushday = null;
+
+
+
+
+
+
+
 
 // This function/event listens for 'keyup'
 $('#search-input').on('keyup', function()
@@ -66,6 +72,7 @@ async function fetchAllLifts()
 }
 
 // This function builds the table using all 4 collections. It utilizes the 'buildTable()' function to do so
+// Could it be built with the 'allLifts' variable?
 function buildTableAll()
 {
     buildTableWithCollection(armday);
@@ -94,6 +101,14 @@ function buildTable(data)
     }
 }
 
+
+// TEST PARAMS FUNCTION //
+
+function testParams(path)
+{
+    console.log( "path :" + path)
+}
+
 // Needed to add a serparate builder because the original buildTable function clears the table at the beggining
 function buildTableWithCollection(data)
 {
@@ -101,11 +116,12 @@ function buildTableWithCollection(data)
 
     for (let i = 0; i < data.length; i++)
     {
+        
         let row = `<tr>
                         <td> <a href="javascript:void(0);" onclick=getSingleLift(${i})> ${data[i].lift} </a></td>
                         <td>${data[i].weight}</td>
                         <td>${data[i].reps}</td>
-                        <td>${data[i].date}<a href="javascript:void(0);" onclick=deleteLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-trash-can"></i></a>
+                        <td>${data[i].date}<a href="javascript:void(0);" onclick=deleteLiftAndReloadTable('${data[i].id}','${data[i].path}')><i class="fa-solid fa-trash-can"></i></a>
                         <a href="javascript:void(0);" onclick=editLiftAndReloadTable('${data[i].id}')><i class="fa-solid fa-pencil"></i></a></td>
                     </tr>`
         table.innerHTML += row
@@ -154,6 +170,9 @@ async function fetchArmDay()
        
         // Set global value for allLifts
         armday = convertedToJSON;
+        
+        
+
     }
     catch(err)
     {
@@ -241,6 +260,7 @@ async function postLift()
         liftType: $("#lift").val(),
         weight: $("#weight").val(),
         reps: $("#reps").val(),
+        splitday: $("#splitday").val()
     }
 
     try
@@ -262,13 +282,14 @@ async function postLift()
     }
 }
 
-// Sends a DELETE request, with {id: docId} as the body
-async function deleteLift(docId)
+// Sends a DELETE request, with {id: docId} as the body. The '{id: docId}' was imprinted into the HTML upon table created.
+async function deleteLift(docId, path)
 {
     
         let body = 
         {
-            id: docId
+            id: docId,
+            path: path
         }
     
         try
@@ -296,7 +317,9 @@ async function editLift(docId)
         liftType: $("#lift").val(),
         weight: $("#weight").val(),
         reps: $("#reps").val(),
+        splitday: $("#splitday").val(),
         id: docId
+        
     }
      try
     {
@@ -316,24 +339,25 @@ async function editLift(docId)
 }
 
 // Deletes a single lift and rebuilds the table
-async function deleteLiftAndReloadTable(docId)
+async function deleteLiftAndReloadTable(docId, path)
 {
-     await deleteLift(docId).then(await fetchAllLifts()).then(clearTable(),populateLiftTable())
+     await deleteLift(docId, path).then(await fetchAllCollections()).then(clearTable(), buildTableAll())
 }  
 
 // Edits a single lift and rebuilds the table
 async function editLiftAndReloadTable(docId)
 {
-    await editLift(docId).then(await fetchAllLifts()).then(clearTable(),populateLiftTable())
+    await editLift(docId).then(await fetchAllCollections()).then(clearTable(), buildTableAll())
 }
 
 // This function fetches all the collections
-
 async function fetchAllCollections()
 {
 await fetchArmDay().then(await fetchLegDay()).then(await fetchPullDay()).then(await fetchPushDay()).then(setAllLifts())
 }
 
+
+// This function loads to 'allLifts' variable with all 4 collections, it also loads the 'path' variable
 function setAllLifts()
 {
     allLifts = [...armday, ...legday, ...pullday, ...pushday]

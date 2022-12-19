@@ -46,17 +46,17 @@ app.get('/getpushday', async (req, res) =>
     return res.send(snapshot.docs.map(doc => doc.data()));  
 })
 
-app.post('/addlift', async (req, res) => {
-    
-    const { liftType, weight, reps } = req.body;
-    const peopleRef = db.collection('lifts').doc();
-    
-    const res2 = await peopleRef.set({
+app.post('/addlift', async (req, res) => 
+{
+    const { liftType, weight, reps, splitday } = req.body;
+    const database = db.collection('lifts').doc(splitday).collection(splitday).doc()
+    const res2 = await database.set({
         "lift": liftType,
         "weight": weight,
         "reps": reps,
         "date": new Date().toLocaleString(),
-        "id": peopleRef.id
+        "id": database.id,
+        "path": splitday
         } 
     , { merge: true })
     
@@ -65,25 +65,26 @@ app.post('/addlift', async (req, res) => {
 
 app.post('/editlift', async (req, res) =>
 {
-    const { liftType, weight, reps } = req.body;
-    const { id } = req.body;
-    const peopleRef = db.collection('lifts').doc(id);
+    const { liftType, weight, reps, id, splitday } = req.body;
+    const database = db.collection('lifts').doc(splitday).collection(splitday).doc(id)
     // This is almost identical to '/addlift' but the 'id' is removed
-    const res2 = await peopleRef.set({
+    const res2 = await database.set({
         "lift": liftType,
         "weight": weight,
         "reps": reps,
-        "date": new Date().toLocaleString()
+        "date": new Date().toLocaleString(),
+        "path": splitday
         } 
     , { merge: true })
     
     res.send(JSON.stringify(req.body))
 })
 
-app.delete('/deletelift', async (req, res) => {
-    let { id } = req.body
-    let peopleRef = db.collection('lifts').doc(id)
-    let res2 = await peopleRef.delete()
+app.delete('/deletelift', async (req, res) => 
+{
+    let { id, path } = req.body
+    let database = db.collection('lifts').doc(path).collection(path).doc(id)
+    let res2 = await database.delete()
 })
 
 
