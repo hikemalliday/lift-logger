@@ -39,6 +39,16 @@
             <label for="reps">Reps</label>
             <input type="number" name="reps" id="reps">
         </div>
+        <div>
+            <label for="splitday">
+                <select id="splitday">
+                    <option value="armday" id="armdaydropdown">armday</option>
+                    <option value="legday" id="legdaydropdown">legday</option>
+                    <option value="pullday" id="pulldaydropdown">pullday</option>
+                    <option value="pushday" id="pushdaydropdown">pushday</option>
+                </select>
+            </label>
+        </div>
 
         <button name="data" type="button" class="button" onclick="postLift()">postLift()</button>
         <button name="data" type="button" class="button" onclick="buildTableAll()">buildTableAll()</button>
@@ -71,11 +81,8 @@
             </tbody>
           </table>
 
-          
           <button type="button" onclick="clearTable()">clearTable()</button>
-          <button type="button" onclick="fetchArmDay()">fetchArmDay()</button>
-    
-
+          
           <script src="index.js"></script>
     <script>
         
